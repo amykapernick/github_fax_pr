@@ -4,12 +4,15 @@ const express = require('express'),
 	app = express(),
 	bodyParser = require('body-parser'),
 	fs = require('file-system'),
+	fetch = require('node-fetch'),
 	accountSid = process.env.TWILIO_ACCOUNT_SID,
 	authToken = process.env.TWILIO_AUTH_TOKEN,
-	client = require('twilio')(accountSid, authToken)
+	client = require('twilio')(accountSid, authToken),
+	fileName = 'fax'
 
 
 app.use(bodyParser({ extended: false }))
+app.use('/files', express.static('files'))
 
 app.get('/', (req, res) => {	
 	res.send('<h1>Send and review Github PRs via Twilio Fax API</h1>')
@@ -19,7 +22,7 @@ app.post('/fax', (req, res) => {
 	client.fax.faxes.create({
 		from: '+61488845130',
 		to: '+61488845130',
-		mediaUrl: 'https://amyskapers.dev/files/fax.pdf'
+		mediaUrl: `https://github-fax.ngrok.io/files/${fileName}.pdf`
 	})
 	.then(fax => console.log(fax))
 })
@@ -41,20 +44,38 @@ app.post('/receive', (req, res) => {
 app.post('/pr/open', (req, res) => {
 	console.log(`A PR has been opened, check it out at ${req.body.pull_request.url}`)
 
+	const data = {
+		url: req.body.pull_request.url
+	}
+
+	fetch('https://github-fax.ngrok.io/create-pdf', {
+		method: 'POST',
+		body: JSON.stringify(data),
+		headers: { 'Content-Type': 'application/json' }
+	})
+
 	res.sendStatus(200)
 })
 
 app.post('/create-pdf', (req, res) => {
+	const url = req.body.url
+
 	const PDFDocument = require('pdfkit'),
 	doc = new PDFDocument
 
-	doc.pipe(fs.createWriteStream('fax.pdf'))
+	doc.pipe(fs.createWriteStream(`./files/${fileName}.pdf`))
 
 	doc.fontSize(40)
-	
-	doc.text('This is a fax!')
+
+	doc.text('A new PR has been opened!')
+
+	doc.fontSize(20)
+
+	doc.text(`Check out the PR at ${url}`)
 
 	doc.end()
+
+	fetch('https://github-fax.ngrok.io/fax', {method: 'POST'})
 
 	res.end()
 })
