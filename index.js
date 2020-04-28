@@ -37,6 +37,10 @@ app.post('/receive', (req, res) => {
 	res.send()
 })
 
+app.post('pr/open', (req, res) => {
+	console.log('A PR has been opened')
+})
+
 app.listen(process.env.PORT || 3000, () => {
 	console.log(`Example app listening on port ${process.env.PORT || 3000}!`)
 })
