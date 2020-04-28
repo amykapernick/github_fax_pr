@@ -4,9 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "nodemon index.js"
   },
   "keywords": [],
-  "author": "Amy Kapernick <amy@aimhigherweb.design> (https://amyskapers.dev)",
-  "license": "MIT"
+  "author": "Amy Kapernick <amy@kapers.dev> (https://amyskapers.dev)",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "nodemon": "^2.0.3",
+    "twilio": "^3.42.2"
+  }
 }
