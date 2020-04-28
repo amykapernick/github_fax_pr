@@ -5,6 +5,7 @@ const express = require('express'),
 	bodyParser = require('body-parser'),
 	fs = require('file-system'),
 	fetch = require('node-fetch'),
+	{Octokit} = require('@octokit/rest'),
 	accountSid = process.env.TWILIO_ACCOUNT_SID,
 	authToken = process.env.TWILIO_AUTH_TOKEN,
 	client = require('twilio')(accountSid, authToken),
@@ -78,6 +79,19 @@ app.post('/create-pdf', (req, res) => {
 	fetch('https://github-fax.ngrok.io/fax', {method: 'POST'})
 
 	res.end()
+})
+
+app.post('/pr/comment', (req, res) => {
+	const octokit = new Octokit({
+		auth: {
+			id: process.env.GITHUB_AUTH_ID,
+			privateKey: process.env.GITHUB_AUTH_SECRET
+		},
+		userAgent: 'githubFax v17.6.0',
+		timeZone: 'Australia/Perth',
+	})
+
+	console.log(octokit.request("GET /"))
 })
 
 app.listen(process.env.PORT || 3000, () => {
