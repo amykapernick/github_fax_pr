@@ -9,10 +9,14 @@ const express = require('express'),
 	accountSid = process.env.TWILIO_ACCOUNT_SID,
 	authToken = process.env.TWILIO_AUTH_TOKEN,
 	client = require('twilio')(accountSid, authToken),
-	fileName = 'fax'
+	fileName = 'fax',
+	ComputerVision = require('@azure/cognitiveservices-computervision'),
+	ComputerVisionClient = ComputerVision.ComputerVisionClient,
+	ComputerVisionModels = ComputerVision.ComputerVisionModels,
+	CognitiveServicesCredentials = require('@azure/ms-rest-azure-js').CognitiveServicesCredentials 
 
-
-app.use(bodyParser({ extended: false }))
+app.use(bodyParser.urlencoded({extended: true}))
+app.use(bodyParser.json())
 app.use('/files', express.static('files'))
 
 app.get('/', (req, res) => {	
@@ -94,6 +98,21 @@ app.post('/pr/comment', (req, res) => {
 	console.log(octokit.request("GET /"))
 })
 
-app.listen(process.env.PORT || 3000, () => {
+app.post('/read', async (req, res) => {
+	const cognitiveServiceCredentials = new CognitiveServicesCredentials(process.env.COMPUTER_VISION_KEY),
+	client = new ComputerVisionClient(cognitiveServiceCredentials, process.env.COMPUTER_VISION_ENDPOINT)
+
+	client.batchReadFile(`https://github-fax.ngrok.io/files/${fileName}.pdf`).then(result => {
+		const operationId = result.operationLocation.replace(`${process.env.COMPUTER_VISION_ENDPOINT}/vision/v2.1/read/operations/`, '')
+
+		client.getReadOperationResult(operationId).then(data => {
+			
+		}).catch(err => console.log(err))
+	}).catch(err => console.log(err))
+
+	res.sendStatus(200)
+})
+
+app.listen(process.env.PORT || 3000, () => { 
 	console.log(`Example app listening on port ${process.env.PORT || 3000}!`)
 })
