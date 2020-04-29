@@ -106,7 +106,20 @@ app.post('/read', async (req, res) => {
 		const operationId = result.operationLocation.replace(`${process.env.COMPUTER_VISION_ENDPOINT}/vision/v2.1/read/operations/`, '')
 
 		client.getReadOperationResult(operationId).then(data => {
-			
+			let string = ''
+
+			data.recognitionResults[0].lines.forEach(line => {
+				string = `${string}${line.text}`
+			})
+
+			const matches = string.match(/https:\/\/api\.github\.com\/repos\/((\w|\d|-)+)\/((\w|\d|-|_)+)\/pulls\/((\d)+)/i),
+			url = matches[0],
+			username = matches[1],
+			repo = matches[3],
+			pr = matches[5]
+
+			console.log({url, username, repo, pr})
+
 		}).catch(err => console.log(err))
 	}).catch(err => console.log(err))
 
