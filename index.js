@@ -27,7 +27,7 @@ app.post('/fax', (req, res) => {
 	client.fax.faxes.create({
 		from: process.env.SEND_NUMBER,
 		to: process.env.RECEIVE_NUMBER,
-		mediaUrl: `https://github-fax.ngrok.io/files/${fileName}.pdf`
+		mediaUrl: `https://github-fax.ngrok.io/${req.body.fileName}`
 	})
 	.then(fax => console.log(fax.sid))
 })
@@ -88,7 +88,12 @@ app.post('/create-pdf', (req, res) => {
 
 	doc.end()
 
-	fetch('https://github-fax.ngrok.io/fax', {method: 'POST'})
+	fetch('https://github-fax.ngrok.io/fax', {
+		method: 'POST', 
+		headers: {'Content-Type': 'application/json'},
+		body: JSON.stringify({
+			fileName: `files/pr_${repo}_${pr}.pdf`
+	})})
 
 	res.end()
 })
