@@ -57,11 +57,15 @@ app.post('/pr/open', (req, res) => {
 		url: req.body.pull_request.url
 	}
 
-	fetch('https://github-fax.ngrok.io/create-pdf', {
-		method: 'POST',
-		body: JSON.stringify(data),
-		headers: { 'Content-Type': 'application/json' }
-	})
+	console.log(req.body)
+
+	if(req.body.action == 'opened') {
+		fetch('https://github-fax.ngrok.io/create-pdf', {
+			method: 'POST',
+			body: JSON.stringify(data),
+			headers: { 'Content-Type': 'application/json' }
+		})
+	}
 
 	res.sendStatus(200)
 })
