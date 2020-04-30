@@ -4,6 +4,12 @@ And integration to allow reviewing and commenting on pull requests via fax.
 ## Demo
 <https://vimeo.com/413450595>
 
+## Requirements
+- Must have a Twilio Account, and a fax capable phone number (instructions available as [part of fax quickstart](https://www.twilio.com/docs/fax/quickstart#getting-started))
+- Must have a [Microsoft Cognitive Services Computer Vision resource](https://portal.azure.com/#blade/Microsoft_Azure_Marketplace/MarketplaceOffersBlade/selectedMenuItemId/CognitiveServices_MP/dontDiscardJourney/true/launchingContext/%7B%22source%22%3A%22Resources%20Microsoft.CognitiveServices%2Faccounts%22%7D) set up (can be done as part of the Azure free tier)
+- Must have a semi recent version of Node installed (built on v13.9.0)
+- Must have a GitHub account and at least one repository
+
 ## To Use
 - Download repository
 - Run `npm install` or `yarn install`
