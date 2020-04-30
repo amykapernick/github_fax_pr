@@ -26,3 +26,14 @@ And integration to allow reviewing and commenting on pull requests via fax.
 `COMPUTER_VISION_KEY` - The API key for your Computer Vision resource in Azure, found in the Azure portal under the **Keys and Endpoint** section
 `SEND_NUMBER` - The fax capable Twilio number you're sending the fax from
 `RECEIVE_NUMBER` - The fax number you're sending a fax to
+
+## Contributing
+This was a fun project started as part of #TwilioHackathon in April 2020, but if you'd like to there's a couple more things that we wanted to look at doing
+
+[x] Identify if the user has been selected as a reviewer for the PR
+[ ] If the user is a reviewer, adding the review data to the fax
+[ ] If the user is a reviewer, fetching the review data from the fax
+[ ] If the user is a reviewer, and they use the word "approve" somewhere in their comment, mark the PR as approved
+[ ] Link up Sendgrid to the fax part, so that receiving a fax sends the PDF via email, and a fax can be sent via email as well <https://www.twilio.com/blog/fax-email-sendgrid-nodejs>
+[ ] Add code changes to the fax so that the code can be viewed there
+[ ] Enable commenting as a different user (identifying user from fax number)
