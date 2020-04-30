@@ -25,11 +25,11 @@ app.get('/', (req, res) => {
 
 app.post('/fax', (req, res) => {
 	client.fax.faxes.create({
-		from: '+61488845130',
-		to: '+61488845130',
+		from: process.env.SEND_NUMBER,
+		to: process.env.RECEIVE_NUMBER,
 		mediaUrl: `https://github-fax.ngrok.io/files/${fileName}.pdf`
 	})
-	.then(fax => console.log(fax))
+	.then(fax => console.log(fax.sid))
 })
 
 app.post('/sent', (req, res) => {
@@ -40,7 +40,11 @@ app.post('/sent', (req, res) => {
 })
 
 app.post('/receive', (req, res) => {
-	console.log(req.body.MediaUrl)
+	fetch('https://github-fax.ngrok.io/read', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({url: req.body.MediaUrl})
+	})
 
 	res.status(200)
 	res.send()
@@ -63,12 +67,16 @@ app.post('/pr/open', (req, res) => {
 })
 
 app.post('/create-pdf', (req, res) => {
-	const url = req.body.url
+	const url = req.body.url,
+	matches = url.match(/https:\/\/api\.github\.com\/repos\/((\w|\d|-)+)\/((\w|\d|-|_)+)\/pulls\/((\d)+)/i),
+			username = matches[1],
+			repo = matches[3],
+			pr = matches[5]
 
 	const PDFDocument = require('pdfkit'),
 	doc = new PDFDocument
 
-	doc.pipe(fs.createWriteStream(`./files/${fileName}.pdf`))
+	doc.pipe(fs.createWriteStream(`./files/pr_${repo}_${pr}.pdf`))
 
 	doc.fontSize(40)
 
@@ -86,23 +94,27 @@ app.post('/create-pdf', (req, res) => {
 })
 
 app.post('/pr/comment', (req, res) => {
-	const octokit = new Octokit({
-		auth: {
-			id: process.env.GITHUB_AUTH_ID,
-			privateKey: process.env.GITHUB_AUTH_SECRET
+	const {url, username, repo, pr, comment} = req.body
+
+	fetch(`https://api.github.com/repos/${username}/${repo}/issues/${pr}/comments`, {
+		method: 'POST',
+		headers: { 
+			'Content-Type': 'application/json',
+			'Authorization': `token ${process.env.GITHUB_ACCESS_TOKEN}`
 		},
-		userAgent: 'githubFax v17.6.0',
-		timeZone: 'Australia/Perth',
+		body: JSON.stringify({
+			body: comment
+		})
 	})
 
-	console.log(octokit.request("GET /"))
+	res.sendStatus(200)
 })
 
 app.post('/read', async (req, res) => {
 	const cognitiveServiceCredentials = new CognitiveServicesCredentials(process.env.COMPUTER_VISION_KEY),
 	client = new ComputerVisionClient(cognitiveServiceCredentials, process.env.COMPUTER_VISION_ENDPOINT)
 
-	client.batchReadFile(`https://github-fax.ngrok.io/files/${fileName}.pdf`).then(result => {
+	client.batchReadFile(req.body.url).then(result => {
 		const operationId = result.operationLocation.replace(`${process.env.COMPUTER_VISION_ENDPOINT}/vision/v2.1/read/operations/`, '')
 
 		client.getReadOperationResult(operationId).then(data => {
@@ -116,9 +128,15 @@ app.post('/read', async (req, res) => {
 			url = matches[0],
 			username = matches[1],
 			repo = matches[3],
-			pr = matches[5]
+			pr = matches[5],
+			comment = string.split(url)[1]
 
-			console.log({url, username, repo, pr})
+
+			fetch('https://github-fax.ngrok.io/pr/comment', {
+				method: 'POST',
+				body: JSON.stringify({url, username, repo, pr, comment}),
+				headers: { 'Content-Type': 'application/json' }
+			})
 
 		}).catch(err => console.log(err))
 	}).catch(err => console.log(err))
