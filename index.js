@@ -53,19 +53,32 @@ app.post('/receive', (req, res) => {
 app.post('/pr/open', (req, res) => {
 	console.log(`A PR has been opened, check it out at ${req.body.pull_request.url}`)
 
-	const data = {
+	let data = {
 		url: req.body.pull_request.url
 	}
 
-	console.log(req.body)
+	if(!['opened', 'assigned'].includes(req.body.action)) {
+		res.sendStatus(200)
 
-	if(req.body.action == 'opened') {
-		fetch('https://github-fax.ngrok.io/create-pdf', {
-			method: 'POST',
-			body: JSON.stringify(data),
-			headers: { 'Content-Type': 'application/json' }
+		return
+	}
+
+	if(req.body.requested_reviewers) {
+		req.body.requested_reviewers.some(user => {
+			if(user.login == process.env.GITHUB_USERNAME) {
+				data.reviewId = user.id
+
+				return true
+			}
+			return false
 		})
 	}
+	
+	fetch('https://github-fax.ngrok.io/create-pdf', {
+		method: 'POST',
+		body: JSON.stringify(data),
+		headers: { 'Content-Type': 'application/json' }
+	})
 
 	res.sendStatus(200)
 })
